@@ -1,0 +1,16 @@
+[user]
+	name = tao-shen
+	email = tao.shen@zju.edu.cn
+
+[core]
+	editor = vim
+	autocrlf = input
+	
+[init]
+	defaultBranch = main
+	
+[color]
+	ui = auto
+	
+[pull]
+	rebase = false 
