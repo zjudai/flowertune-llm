@@ -1,6 +1,6 @@
 {
   "mbpp": {
-    "pass@1": 0.214
+    "pass@1": 0.522
   },
   "config": {
     "prefix": "",
@@ -11,9 +11,9 @@
     "n_samples": 1,
     "eos": "<|endoftext|>",
     "seed": 0,
-    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
     "modeltype": "causal",
-    "peft_model": "/home/st/flwr-nlp/results/2025-03-28_19-45-24/peft_10",
+    "peft_model": "/home/st/flwr-nlp/results/2025-03-31_04-40-09/peft_10",
     "revision": null,
     "use_auth_token": true,
     "trust_remote_code": false,

@@ -76,12 +76,12 @@ The evaluation was conducted on the MMLU (Massive Multitask Language Understandi
 | **Model** | **STEM** | **Social Sciences** | **Humanities** | **Average** |
 |-----------|----------|---------------------|----------------|-------------|
 | Qwen/Qwen2.5-7B-Instruct | 52.52% | 79.27% | 60.32% | 64.04% |
+| Qwen/Qwen2.5-1.5B-Instruct | 47.13% | 62.30% | 50.54% | 53.32% |
+| mistralai/Mistral-7B-Instruct-v0.3 | 29.94% | 54.27% | 44.93% | 43.05% |
 | meta-llama/Llama-3.1-8B-Instruct | 22.87% | 39.55% | 32.05% | 31.49% |
 | mistralai/Mistral-7B-v0.3 | 12.59% | 31.13% | 27.10% | 23.61% |
-| mistralai/Mistral-7B-Instruct-v0.3 | 29.94% | 54.27% | 44.93% | 43.05% |
-| Qwen/Qwen2.5-1.5B-Instruct | 47.13% | 62.30% | 50.54% | 53.32% |
-| meta-llama/Llama-3.2-1B-Instruct | 12.88% | 17.61% | 6.16% | 12.22% |
 | TinyLlama/TinyLlama-1.1B-Chat-v1.0 | 14.18% | 21.61% | 21.91% | 19.23% |
+| meta-llama/Llama-3.2-1B-Instruct | 12.88% | 17.61% | 6.16% | 12.22% |
 | google/gemma-3-1b-it | 0.10% | 0.49% | 0.15% | 0.24% |
 | deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B | 0.54% | 0.00% | 0.04% | 0.19% |
 
