@@ -1,13 +1,3 @@
----
-tags:
-- federated-learning
-- flower
-- lora
-- peft
-datasets:
-- vicgalle/alpaca-gpt4
----
-
 # FlowerTune LLM on General NLP Dataset
 
 This directory conducts federated instruction tuning with pretrained language models on a general NLP dataset [vicgalle/alpaca-gpt4](https://huggingface.co/datasets/vicgalle/alpaca-gpt4).
@@ -89,17 +79,15 @@ The global PEFT model checkpoints are saved every 5 rounds after aggregation on 
 
 The evaluation was conducted on the MMLU (Massive Multitask Language Understanding) benchmark, which tests knowledge across various domains:
 
-| **Model** | **STEM** | **Social Sciences** | **Humanities** | **Average** |
-|-----------|----------|---------------------|----------------|-------------|
-| Qwen/Qwen2.5-7B-Instruct | 52.52% | 79.27% | 60.32% | 64.04% |
-| Qwen/Qwen2.5-1.5B-Instruct | 47.13% | 62.30% | 50.54% | 53.32% |
-| mistralai/Mistral-7B-Instruct-v0.3 | 29.94% | 54.27% | 44.93% | 43.05% |
-| meta-llama/Llama-3.1-8B-Instruct | 22.87% | 39.55% | 32.05% | 31.49% |
-| mistralai/Mistral-7B-v0.3 | 12.59% | 31.13% | 27.10% | 23.61% |
-| TinyLlama/TinyLlama-1.1B-Chat-v1.0 | 14.18% | 21.61% | 21.91% | 19.23% |
-| meta-llama/Llama-3.2-1B-Instruct | 12.88% | 17.61% | 6.16% | 12.22% |
-| google/gemma-3-1b-it | 0.10% | 0.49% | 0.15% | 0.24% |
-| deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B | 0.54% | 0.00% | 0.04% | 0.19% |
+| **Model** | **STEM** | **Social Sciences** | **Humanities** | **Average** | **Comm. Costs** |
+|-----------|----------|---------------------|----------------|-------------|-----------------|
+| Qwen/Qwen2.5-7B-Instruct | 52.52% | 79.27% | 60.32% | 64.04% | 1540.55 MB |
+| Qwen/Qwen2.5-1.5B-Instruct | 47.13% | 62.30% | 50.54% | 53.32% | 665.55 MB |
+| mistralai/Mistral-7B-Instruct-v0.3 | 29.94% | 54.27% | 44.93% | 43.05% | 2080.62 MB |
+| meta-llama/Llama-3.1-8B-Instruct | 22.87% | 39.55% | 32.05% | 31.49% | 2080.62 MB |
+| TinyLlama/TinyLlama-1.1B-Chat-v1.0 | 14.18% | 21.61% | 21.91% | 19.23% | 687.93 MB |
+| meta-llama/Llama-3.2-1B-Instruct | 12.88% | 17.61% | 6.16% | 12.22% | 520.31 MB |
+| deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B | 0.54% | 0.00% | 0.04% | 0.19% | 665.55 MB |
 
 ## Hardware Details
 
