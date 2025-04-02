@@ -1,9 +1,25 @@
+---
+tags:
+- federated-learning
+- flower
+- lora
+- peft
+datasets:
+- vicgalle/alpaca-gpt4
+---
+
 # FlowerTune LLM on General NLP Dataset
 
 This directory conducts federated instruction tuning with pretrained language models on a general NLP dataset [vicgalle/alpaca-gpt4](https://huggingface.co/datasets/vicgalle/alpaca-gpt4).
 We use [Flower Datasets](https://flower.dev/docs/datasets/) to download, partition and preprocess the dataset.
 Flower's Simulation Engine is used to simulate the LLM fine-tuning process in a federated way,
 which allows users to perform the training on a single GPU.
+
+## Important Links
+
+- GitHub: [https://github.com/zjudai/flwr-nlp](https://github.com/zjudai/flwr-nlp)
+- HuggingFace: [https://huggingface.co/zjudai/FlowerTune](https://huggingface.co/zjudai/FlowerTune)
+- Model Collection: [FlowerTune LoRA Collection](https://huggingface.co/collections/zjudai/flowertune-lora-collection-67ecd5d0dae6145cbf798439)
 
 ## Experimental Setup
 

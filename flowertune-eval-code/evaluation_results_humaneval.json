@@ -1,6 +1,6 @@
 {
   "humaneval": {
-    "pass@1": 0.31097560975609756
+    "pass@1": 0.012195121951219513
   },
   "config": {
     "prefix": "",
@@ -11,9 +11,9 @@
     "n_samples": 1,
     "eos": "<|endoftext|>",
     "seed": 0,
-    "model": "mistralai/Mistral-7B-v0.3",
+    "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
     "modeltype": "causal",
-    "peft_model": "/home/st/flwr-nlp/results/2025-03-25_15-28-46/peft_10",
+    "peft_model": "/home/st/flwr-nlp/results/2025-03-31_11-30-26/peft_10",
     "revision": null,
     "use_auth_token": true,
     "trust_remote_code": false,
