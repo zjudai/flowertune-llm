@@ -81,13 +81,13 @@ The evaluation was conducted on the MMLU (Massive Multitask Language Understandi
 
 | **Model** | **STEM** | **Social Sciences** | **Humanities** | **Average** | **Comm. Costs** |
 |-----------|----------|---------------------|----------------|-------------|-----------------|
-| Qwen/Qwen2.5-7B-Instruct | 52.52% | 79.27% | 60.32% | 64.04% | 1540.55 MB |
-| Qwen/Qwen2.5-1.5B-Instruct | 47.13% | 62.30% | 50.54% | 53.32% | 665.55 MB |
-| mistralai/Mistral-7B-Instruct-v0.3 | 29.94% | 54.27% | 44.93% | 43.05% | 2080.62 MB |
-| meta-llama/Llama-3.1-8B-Instruct | 22.87% | 39.55% | 32.05% | 31.49% | 2080.62 MB |
-| TinyLlama/TinyLlama-1.1B-Chat-v1.0 | 14.18% | 21.61% | 21.91% | 19.23% | 687.93 MB |
-| meta-llama/Llama-3.2-1B-Instruct | 12.88% | 17.61% | 6.16% | 12.22% | 520.31 MB |
-| deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B | 0.54% | 0.00% | 0.04% | 0.19% | 665.55 MB |
+| Qwen/Qwen2.5-7B-Instruct | 52.52% | 79.27% | 60.32% | 64.04% | 1.50 GB |
+| Qwen/Qwen2.5-1.5B-Instruct | 47.13% | 62.30% | 50.54% | 53.32% | 0.65 GB |
+| mistralai/Mistral-7B-Instruct-v0.3 | 29.94% | 54.27% | 44.93% | 43.05% | 2.03 GB |
+| meta-llama/Llama-3.1-8B-Instruct | 22.87% | 39.55% | 32.05% | 31.49% | 2.03 GB |
+| TinyLlama/TinyLlama-1.1B-Chat-v1.0 | 14.18% | 21.61% | 21.91% | 19.23% | 0.67 GB |
+| meta-llama/Llama-3.2-1B-Instruct | 12.88% | 17.61% | 6.16% | 12.22% | 0.51 GB |
+| deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B | 0.54% | 0.00% | 0.04% | 0.19% | 0.65 GB |
 
 ## Hardware Details
 
