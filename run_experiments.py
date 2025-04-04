@@ -15,18 +15,23 @@ Prerequisites:
 
 Usage:
   # Recommended: Use the wrapper script that sets up environment automatically
-  ./run_all_experiments.sh [options]
+  ./run_all_experiments.sh [task] [options]
   
   # Or manually run with proper environment setup:
   conda activate flwr && export http_proxy=http://10.72.74.124:7890 https_proxy=http://10.72.74.124:7890
-  python run_experiments.py [options]
+  python run_experiments.py --task [task] [options]
   
   # Command options:
-  python run_experiments.py                     # Run training+evaluation for all models
-  python run_experiments.py --eval-only         # Run only evaluation for all models
-  python run_experiments.py --models model1 model2  # Run only specific models
-  python run_experiments.py --eval-only --models model1  # Evaluate only one model
-  python run_experiments.py --eval-only --eval-types general_nlp,finance  # Run specific evaluation types
+  python run_experiments.py --task general-nlp                      # Run training+evaluation for general-nlp task
+  python run_experiments.py --task finance --eval-only              # Run only evaluation for finance task
+  python run_experiments.py --task medical --models model1 model2   # Run medical task on specific models
+  python run_experiments.py --task code --eval-only --models model1  # Evaluate only one model for code task
+
+Available tasks:
+  - general-nlp (default)
+  - finance
+  - medical
+  - code
 
 Available models:
   - meta-llama/Llama-3.2-1B-Instruct
@@ -69,6 +74,34 @@ models = [
     "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 ]
 
+# Task-specific configurations
+TASK_CONFIGS = {
+    "general-nlp": {
+        "dataset_name": "vicgalle/alpaca-gpt4",
+        "llm_task": "generalnlp",
+        "fraction_fit": 0.1,
+        "num_supernodes": 20
+    },
+    "finance": {
+        "dataset_name": "FinGPT/fingpt-sentiment-train",
+        "llm_task": "finance",
+        "fraction_fit": 0.1,
+        "num_supernodes": 50
+    },
+    "medical": {
+        "dataset_name": "medalpaca/medical_meadow_medical_flashcards",
+        "llm_task": "medical",
+        "fraction_fit": 0.1,
+        "num_supernodes": 20
+    },
+    "code": {
+        "dataset_name": "flwrlabs/code-alpaca-20k",
+        "llm_task": "code",
+        "fraction_fit": 0.2,
+        "num_supernodes": 10
+    }
+}
+
 # Evaluation types
 EVAL_TYPES = ["general_nlp", "finance", "medical", "code"]
 
@@ -76,24 +109,33 @@ EVAL_TYPES = ["general_nlp", "finance", "medical", "code"]
 results_dir = "experiment_results"
 os.makedirs(results_dir, exist_ok=True)
 
-# Prepare CSV file for results
+# To be set in main() after parsing args
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_file = os.path.join(results_dir, f"model_results_{timestamp}.csv")
-with open(results_file, 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(["Model", "STEM", "Social Sciences", "Humanities", "Average"])
+current_task = "general-nlp"  # Default task
+results_file = None
 
-def update_pyproject_toml(model_name):
-    """Update the pyproject.toml file with the current model name."""
+def update_pyproject_toml(model_name, task_config):
+    """Update the pyproject.toml file with the current model name and task-specific configurations."""
     pyproject_path = "pyproject.toml"
     config = toml.load(pyproject_path)
+    
+    # Update model name
     config["tool"]["flwr"]["app"]["config"]["model"]["name"] = model_name
+    
+    # Update task-specific configurations
+    config["tool"]["flwr"]["app"]["config"]["static"]["dataset"]["name"] = task_config["dataset_name"]
+    config["tool"]["flwr"]["app"]["config"]["strategy"]["fraction-fit"] = task_config["fraction_fit"]
+    config["tool"]["flwr"]["federations"]["local-simulation"]["options"]["num-supernodes"] = task_config["num_supernodes"]
     
     with open(pyproject_path, 'w') as f:
         toml.dump(config, f)
-    print(f"Updated pyproject.toml with model: {model_name}")
+    print(f"Updated pyproject.toml with model: {model_name} for task: {current_task}")
+    print(f"  - Dataset: {task_config['dataset_name']}")
+    print(f"  - LLM Task: {task_config['llm_task']}")
+    print(f"  - Fraction Fit: {task_config['fraction_fit']}")
+    print(f"  - Num Supernodes: {task_config['num_supernodes']}")
 
-def update_eval_config_toml(model_name, peft_path, config_path="eval_config.toml"):
+def update_eval_config_toml(model_name, peft_path, task=None, config_path="eval_config.toml"):
     """Update the eval_config.toml file with the latest PEFT path for the model."""
     if not os.path.exists(config_path):
         print(f"Warning: {config_path} not found, cannot update PEFT path")
@@ -105,8 +147,28 @@ def update_eval_config_toml(model_name, peft_path, config_path="eval_config.toml
         # Check if the models section exists, if not create it
         if "models" not in config:
             config["models"] = {}
+        
+        # If the task parameter is provided, store paths in a task-specific structure
+        if task:
+            # Create task-specific section if it doesn't exist
+            if "tasks" not in config:
+                config["tasks"] = {}
+                
+            if task not in config["tasks"]:
+                config["tasks"][task] = {}
+                
+            if "models" not in config["tasks"][task]:
+                config["tasks"][task]["models"] = {}
+                
+            # Update task-specific model path
+            if model_name not in config["tasks"][task]["models"]:
+                config["tasks"][task]["models"][model_name] = {}
+                
+            config["tasks"][task]["models"][model_name]["peft_path"] = peft_path
             
-        # If the model doesn't exist in the config, create it
+            print(f"Updated {config_path} with task-specific PEFT path for {task}/{model_name}: {peft_path}")
+        
+        # Also update in the general models section
         if model_name not in config["models"]:
             config["models"][model_name] = {}
         
@@ -123,7 +185,7 @@ def update_eval_config_toml(model_name, peft_path, config_path="eval_config.toml
         print(f"Error updating {config_path}: {e}")
         return False
 
-def get_latest_peft_path():
+def get_latest_peft_path(task_name=None, model_name=None, model_timestamp=None):
     """Find the most recent peft directory in the results folder based on config."""
     base_results_dir = "/home/st/flwr-nlp/results"
     
@@ -143,8 +205,51 @@ def get_latest_peft_path():
     
     print(f"Looking for PEFT directory: {peft_dir_name} (based on {num_server_rounds} rounds, saving every {save_every_round} rounds)")
     
-    # Get all timestamp directories in ascending order (newest last)
-    result_dirs = sorted(glob.glob(os.path.join(base_results_dir, "????-??-??_??-??-??")))
+    # If we have all the specific information, we can locate the exact directory
+    if task_name and model_name and model_timestamp:
+        model_id = model_name.replace("/", "_")
+        specific_dir = f"{task_name}_{model_id}_{model_timestamp}"
+        result_dir = os.path.join(base_results_dir, specific_dir)
+        peft_path = os.path.join(result_dir, peft_dir_name)
+        
+        print(f"Looking for specific PEFT path: {peft_path}")
+        
+        if os.path.exists(peft_path):
+            print(f"Found specific PEFT path: {peft_path}")
+            return peft_path
+        else:
+            # Try to find any peft directory in this specific folder
+            peft_dirs = sorted(glob.glob(os.path.join(result_dir, "peft_*")))
+            if peft_dirs:
+                peft_path = peft_dirs[-1]  # Get the highest available peft directory
+                print(f"Found alternative PEFT path: {peft_path}")
+                return peft_path
+            else:
+                print(f"No PEFT directories found in {result_dir}")
+    
+    # If we don't have specific information or couldn't find the specific directory,
+    # try a more general search pattern
+    result_dirs_pattern = os.path.join(base_results_dir, "????-??-??_??-??-??")
+    
+    # Refine search pattern based on available information
+    if task_name:
+        if model_name:
+            model_id = model_name.replace("/", "_")
+            # Look for task and model specific directories
+            result_dirs_pattern = os.path.join(base_results_dir, f"{task_name}_{model_id}_*")
+        else:
+            # Look for task-specific directories
+            result_dirs_pattern = os.path.join(base_results_dir, f"{task_name}_*")
+    
+    print(f"Searching for PEFT directories with pattern: {result_dirs_pattern}")
+    result_dirs = sorted(glob.glob(result_dirs_pattern))
+    
+    if not result_dirs:
+        print(f"No result directories found with pattern: {result_dirs_pattern}")
+        # Try without task prefix if no results found
+        if task_name:
+            print("Trying to find results with only timestamp pattern...")
+            result_dirs = sorted(glob.glob(os.path.join(base_results_dir, "????-??-??_??-??-??")))
     
     if not result_dirs:
         print("No result directories found!")
@@ -167,24 +272,49 @@ def get_latest_peft_path():
     print(f"Found PEFT path: {peft_path}")
     return peft_path
 
-def run_training(model_name):
+def run_training(model_name, task_results_dir):
     """Run the federated learning training for the current model."""
-    print(f"Starting training for model: {model_name}")
+    print(f"Starting training for model: {model_name} with task: {current_task}")
+    
+    # Get task-specific configuration
+    task_config = TASK_CONFIGS[current_task]
     
     # Update configuration file
-    update_pyproject_toml(model_name)
+    update_pyproject_toml(model_name, task_config)
+    
+    # Create a model-specific timestamp for unique folder naming
+    model_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # Create log file path for training
-    train_log_path = os.path.join(results_dir, f"{model_name.replace('/', '_')}_train.log")
+    train_log_path = os.path.join(task_results_dir, f"{model_name.replace('/', '_')}_train.log")
     
     # Run federated learning
     try:
         # Write training header to log file
         with open(train_log_path, 'w') as log_file:
-            log_file.write(f"=== TRAINING LOG: {model_name} ===\n")
+            log_file.write(f"=== TRAINING LOG: {model_name} for task {current_task} ===\n")
             log_file.write(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            log_file.write(f"Task: {current_task}\n")
+            log_file.write(f"LLM Task: {task_config['llm_task']}\n")
+            log_file.write(f"Dataset: {task_config['dataset_name']}\n")
+            log_file.write(f"Model timestamp: {model_timestamp}\n")
             log_file.write(f"Command: flwr run\n")
             log_file.write(f"{'='*60}\n\n")
+        
+        # Set environment variable for the llm_task to be used in the client code
+        os.environ["FLWR_LLM_TASK"] = task_config["llm_task"]
+        # Set environment variable for task name to be included in saved model directories
+        os.environ["FLWR_TASK_NAME"] = current_task
+        # Set environment variable for model-specific timestamp
+        os.environ["FLWR_RUN_TIMESTAMP"] = model_timestamp
+        # Set environment variable for model name
+        os.environ["FLWR_MODEL_NAME"] = model_name.replace("/", "_")
+        
+        print(f"Set environment variables:")
+        print(f"  FLWR_LLM_TASK={task_config['llm_task']}")
+        print(f"  FLWR_TASK_NAME={current_task}")
+        print(f"  FLWR_RUN_TIMESTAMP={model_timestamp}")
+        print(f"  FLWR_MODEL_NAME={model_name.replace('/', '_')}")
         
         # Start the process with real-time output
         process = subprocess.Popen(
@@ -194,7 +324,8 @@ def run_training(model_name):
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
+            env=os.environ.copy() # Use the current environment with the added vars
         )
         
         # Read and print output in real-time, also save to log file
@@ -213,19 +344,20 @@ def run_training(model_name):
         if return_code != 0:
             raise subprocess.CalledProcessError(return_code, "flwr run")
             
-        print(f"Training completed for {model_name}. Log saved to {os.path.abspath(train_log_path)}")
+        print(f"Training completed for {model_name} on task {current_task}. Log saved to {os.path.abspath(train_log_path)}")
         
-        # After successful training, get the latest PEFT path
-        peft_path = get_latest_peft_path()
+        # After successful training, get the latest PEFT path for this model
+        model_results_dir = f"{current_task}_{model_name.replace('/', '_')}_{model_timestamp}"
+        peft_path = get_latest_peft_path(task_name=current_task, model_name=model_name, model_timestamp=model_timestamp)
         if peft_path:
             # Update the eval_config.toml with the new PEFT path
-            update_eval_config_toml(model_name, peft_path)
+            update_eval_config_toml(model_name, peft_path, task=current_task)
         else:
             print(f"Warning: Could not find PEFT path after training for {model_name}")
             
         return True
     except subprocess.CalledProcessError as e:
-        print(f"Error during training for {model_name}: {e}")
+        print(f"Error during training for {model_name} on task {current_task}: {e}")
         
         # Log the error
         try:
@@ -238,7 +370,7 @@ def run_training(model_name):
             
         return False
     except Exception as e:
-        print(f"Unexpected error during training for {model_name}: {str(e)}")
+        print(f"Unexpected error during training for {model_name} on task {current_task}: {str(e)}")
         
         # Log the error
         try:
@@ -264,8 +396,16 @@ def run_evaluation(model_name, eval_type="general_nlp", eval_config=None):
         model_config = eval_config.get("models", {}).get(model_name, {})
         eval_type_config = eval_config.get(eval_type, {})
         
-        # Get model-specific parameters
-        peft_path = model_config.get("peft_path", default_config.get("default_peft_path", None))
+        # Check for task-specific model PEFT path
+        task_specific_peft_path = None
+        if "tasks" in eval_config and current_task in eval_config["tasks"]:
+            if "models" in eval_config["tasks"][current_task] and model_name in eval_config["tasks"][current_task]["models"]:
+                task_specific_peft_path = eval_config["tasks"][current_task]["models"][model_name].get("peft_path")
+                if task_specific_peft_path:
+                    print(f"Found task-specific PEFT path for {current_task}/{model_name}: {task_specific_peft_path}")
+        
+        # Get model-specific parameters, prioritizing task-specific paths
+        peft_path = task_specific_peft_path or model_config.get("peft_path", default_config.get("default_peft_path", None))
         trust_remote_code = model_config.get("trust_remote_code", False)
         quantization = model_config.get("quantization", 4)
         
@@ -278,7 +418,7 @@ def run_evaluation(model_name, eval_type="general_nlp", eval_config=None):
         # Check for PEFT path
         if not peft_path:
             print(f"No PEFT path specified for {model_name}. Trying to find latest...")
-            peft_path = get_latest_peft_path()
+            peft_path = get_latest_peft_path(task_name=current_task, model_name=model_name)
             if not peft_path:
                 print(f"Could not find a valid PEFT path for evaluation. Skipping evaluation for {model_name}")
                 return {
@@ -293,6 +433,7 @@ def run_evaluation(model_name, eval_type="general_nlp", eval_config=None):
         with open(eval_log_path, 'w') as log_file:
             log_file.write(f"=== EVALUATION LOG: {model_name} - {eval_type} ===\n")
             log_file.write(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            log_file.write(f"Task: {current_task}\n")
             log_file.write(f"PEFT path: {peft_path}\n")
             log_file.write(f"Working directory: {working_dir}\n")
             log_file.write(f"Batch size: {batch_size}\n")
@@ -504,25 +645,69 @@ def run_evaluation(model_name, eval_type="general_nlp", eval_config=None):
 
 def extract_score(log_content, category):
     """Extract score for a specific category from the log content."""
-    # 使用更具体的正则表达式来匹配类别及其相应的准确度
-    # 我们期望日志中有形如 "Category: stem, Accuracy: 0.123" 或者 "Running evaluation on stem ... Accuracy: 0.123" 的内容
+    # Convert category to lowercase for consistent matching
+    category = category.lower()
+    log_content = log_content.lower()
     
-    # 尝试多种匹配模式
-    patterns = [
-        # 模式1: 类别后紧跟准确度
-        rf"(?:category|dataset|running).*?{category}.*?accuracy:?\s+(\d+\.\d+)",
-        # 模式2: 类别和准确度在同一段但不一定紧挨着
-        rf"{category}(?:.*?\n)*?.*?accuracy:?\s+(\d+\.\d+)",
-        # 模式3: 类别开始的段落到下一个类别之间包含准确度
-        rf"{category}.*?(?=(?:{category}|stem|social_sciences|humanities|other|$)).*?accuracy:?\s+(\d+\.\d+)"
-    ]
-    
-    # 尝试所有模式
-    for pattern in patterns:
-        matches = re.findall(pattern, log_content, re.IGNORECASE | re.DOTALL)
-        if matches:
-            # 找到匹配项，返回最后一个（通常是最终结果）
-            return float(matches[-1])
+    # Different extraction patterns based on task type
+    if category in ["fpb", "fiqa", "tfns"]:  # Finance-specific datasets
+        # Try to match the finance dataset specific patterns
+        finance_patterns = [
+            rf"{category}.*?accuracy:?\s+(\d+\.\d+)",
+            rf"dataset:?\s*{category}.*?accuracy:?\s+(\d+\.\d+)",
+            rf"evaluating.*?{category}.*?accuracy:?\s+(\d+\.\d+)",
+            rf"score.*?{category}[^0-9]*(\d+\.\d+)"
+        ]
+        
+        for pattern in finance_patterns:
+            matches = re.findall(pattern, log_content, re.IGNORECASE | re.DOTALL)
+            if matches:
+                return float(matches[-1])  # Return the last match (likely the final result)
+                
+    elif category in ["pubmedqa", "medmcqa", "medqa", "careqa"]:  # Medical-specific datasets
+        # Try to match the medical dataset specific patterns
+        medical_patterns = [
+            rf"{category}.*?accuracy:?\s+(\d+\.\d+)",
+            rf"dataset:?\s*{category}.*?accuracy:?\s+(\d+\.\d+)",
+            rf"evaluating.*?{category}.*?accuracy:?\s+(\d+\.\d+)",
+            rf"score.*?{category}[^0-9]*(\d+\.\d+)"
+        ]
+        
+        for pattern in medical_patterns:
+            matches = re.findall(pattern, log_content, re.IGNORECASE | re.DOTALL)
+            if matches:
+                return float(matches[-1])  # Return the last match (likely the final result)
+                
+    elif category in ["humaneval", "mbpp", "multiple-js", "multiple-cpp"]:  # Code-specific datasets
+        # For code datasets, check specific patterns for pass@1 or other metrics
+        code_patterns = [
+            rf"{category}.*?pass@1:?\s+(\d+\.\d+)",
+            rf"{category}.*?pass@1 \(%\):?\s+(\d+\.\d+)",
+            rf"{category}.*?pass_at_1:?\s+(\d+\.\d+)",
+            rf"{category}.*?score:?\s+(\d+\.\d+)"
+        ]
+        
+        for pattern in code_patterns:
+            matches = re.findall(pattern, log_content, re.IGNORECASE | re.DOTALL)
+            if matches:
+                return float(matches[-1])  # Return the last match
+    else:
+        # For general NLP and other categories
+        patterns = [
+            # 模式1: 类别后紧跟准确度
+            rf"(?:category|dataset|running).*?{category}.*?accuracy:?\s+(\d+\.\d+)",
+            # 模式2: 类别和准确度在同一段但不一定紧挨着
+            rf"{category}(?:.*?\n)*?.*?accuracy:?\s+(\d+\.\d+)",
+            # 模式3: 类别开始的段落到下一个类别之间包含准确度
+            rf"{category}.*?(?=(?:{category}|stem|social_sciences|humanities|other|$)).*?accuracy:?\s+(\d+\.\d+)"
+        ]
+        
+        # 尝试所有模式
+        for pattern in patterns:
+            matches = re.findall(pattern, log_content, re.IGNORECASE | re.DOTALL)
+            if matches:
+                # 找到匹配项，返回最后一个（通常是最终结果）
+                return float(matches[-1])
     
     # 如果没有找到特定类别的匹配，尝试通用的准确度提取
     general_pattern = r"accuracy:?\s+(\d+\.\d+)"
@@ -688,7 +873,7 @@ def print_summary(all_results):
         
         if eval_type == "general_nlp":
             # Print header
-            print(f"{'Model':<50} | {'STEM':<10} | {'Social':<10} | {'Humanities':<10} | {'Average':<10}")
+            print(f"{'Model':<50} | {'STEM':<10} | {'Social Sciences':<10} | {'Humanities':<10} | {'Average':<10}")
             print("-"*100)
             
             for result in results:
@@ -732,6 +917,8 @@ def print_summary(all_results):
 
 def main():
     """Main function to run the experiment pipeline."""
+    global current_task, timestamp, results_file
+    
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Run training and/or evaluation for language models')
     parser.add_argument('--eval-only', action='store_true', help='Run only evaluation without training')
@@ -739,7 +926,18 @@ def main():
     parser.add_argument('--config', type=str, default='eval_config.toml', help='Path to evaluation config file')
     parser.add_argument('--eval-types', type=str, default=','.join(EVAL_TYPES), 
                         help=f'Comma-separated list of evaluation types to run (default: all). Available: {",".join(EVAL_TYPES)}')
+    parser.add_argument('--task', type=str, default='general-nlp', choices=TASK_CONFIGS.keys(), help='Task to run')
+    parser.add_argument('--run-id', type=str, default=None, help='Run ID for grouping multiple tasks together')
     args = parser.parse_args()
+    
+    # Set global task
+    current_task = args.task
+    
+    # Set timestamp - use provided run-id if available
+    if args.run_id:
+        timestamp = args.run_id
+    else:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # Parse evaluation types
     eval_types_to_run = args.eval_types.split(',')
@@ -755,6 +953,25 @@ def main():
     
     # Select models to run
     models_to_run = args.models if args.models else models
+    
+    # Setup results directory and files with task name
+    task_results_dir = os.path.join(results_dir, current_task, timestamp)
+    os.makedirs(task_results_dir, exist_ok=True)
+    
+    # Set results file path for this task
+    results_file = os.path.join(task_results_dir, f"{current_task}_results.csv")
+    
+    # Initialize results file with appropriate headers
+    with open(results_file, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        if current_task == 'general-nlp':
+            writer.writerow(["Model", "STEM", "Social Sciences", "Humanities", "Average"])
+        elif current_task == 'finance':
+            writer.writerow(["Model", "FPB", "FIQA", "TFNS", "Average"])
+        elif current_task == 'medical':
+            writer.writerow(["Model", "PubMedQA", "MedMCQA", "MedQA", "CareQA", "Average"])
+        elif current_task == 'code':
+            writer.writerow(["Model", "HumanEval", "MBPP", "Multiple-JS", "Multiple-CPP", "Average"])
     
     # Load evaluation config
     eval_config = None
@@ -776,9 +993,11 @@ def main():
         print(f"Warning: Config file {args.config} not found. Using default parameters.")
     
     print(f"\n{'='*80}")
-    print(f"Running {'evaluation only' if args.eval_only else 'training and evaluation'} for models: {models_to_run}")
+    print(f"Running {'evaluation only' if args.eval_only else 'training and evaluation'} for task: {current_task}")
+    print(f"Models: {models_to_run}")
     print(f"Evaluation types: {eval_types_to_run}")
-    print(f"All logs will be saved to: {os.path.abspath(results_dir)}")
+    print(f"Task config: {TASK_CONFIGS[current_task]}")
+    print(f"All logs and results will be saved to: {os.path.abspath(task_results_dir)}")
     print(f"{'='*80}")
     
     # Dictionary to track training success for each model
@@ -788,16 +1007,16 @@ def main():
     # PHASE 1: TRAINING ALL MODELS
     if not args.eval_only:
         print(f"\n\n{'#'*100}")
-        print(f"TRAINING PHASE: Starting training for all models")
+        print(f"TRAINING PHASE: Starting training for all models on task {current_task}")
         print(f"{'#'*100}")
         
         for model in models_to_run:
             print(f"\n{'-'*80}")
-            print(f"TRAINING MODEL: {model}")
+            print(f"TRAINING MODEL: {model} for task {current_task}")
             print(f"{'-'*80}")
-            train_log_path = os.path.join(results_dir, f"{model.replace('/', '_')}_train.log")
+            train_log_path = os.path.join(task_results_dir, f"{model.replace('/', '_')}_train.log")
             print(f"Training logs will be saved to: {os.path.abspath(train_log_path)}")
-            training_success = run_training(model)
+            training_success = run_training(model, task_results_dir)
             training_results[model] = training_success
             print(f"{'-'*80}")
             print(f"TRAINING COMPLETED FOR {model}: {'SUCCESS' if training_success else 'FAILED'}")
@@ -811,57 +1030,70 @@ def main():
         print(f"{'#'*100}")
     
     # PHASE 2: EVALUATING ALL MODELS
+    # Only run the evaluation type that matches the current task
+    task_to_eval_type = {
+        'general-nlp': 'general_nlp',
+        'finance': 'finance',
+        'medical': 'medical',
+        'code': 'code'
+    }
+    
+    # Get the evaluation type corresponding to the current task
+    task_eval_type = task_to_eval_type.get(current_task)
+    if task_eval_type not in eval_types_to_run:
+        print(f"Warning: Evaluation type {task_eval_type} for task {current_task} not in specified eval types.")
+        print(f"Adding {task_eval_type} to evaluation types.")
+        eval_types_to_run = [task_eval_type]
+    else:
+        # Only evaluate on the current task's evaluation type
+        eval_types_to_run = [task_eval_type]
+    
     print(f"\n\n{'#'*100}")
-    print(f"EVALUATION PHASE: Starting evaluation for all evaluation types")
+    print(f"EVALUATION PHASE: Starting evaluation for {current_task} models on {task_eval_type}")
     print(f"{'#'*100}")
     
-    # 主要修改：首先循环评估类型，然后循环模型
-    for eval_type in eval_types_to_run:
-        print(f"\n{'#'*80}")
-        print(f"EVALUATION TYPE: {eval_type}")
-        print(f"{'#'*80}")
-        
-        # Create type-specific results file now
-        type_results_file = os.path.join(results_dir, f"{eval_type}_results_{timestamp}.csv")
-        
-        # Run evaluation for all models on this evaluation type
-        for model in models_to_run:
-            # Skip evaluation if training failed and we're not in eval-only mode
-            if not args.eval_only and not training_results.get(model, True):
-                print(f"\n{'-'*80}")
-                print(f"SKIPPING EVALUATION FOR {model} ON {eval_type}: Training failed")
-                print(f"{'-'*80}")
-                continue
-                
+    # Create type-specific results file
+    type_results_file = os.path.join(task_results_dir, f"{current_task}_results.csv")
+    
+    # Run evaluation for all models on this evaluation type
+    for model in models_to_run:
+        # Skip evaluation if training failed and we're not in eval-only mode
+        if not args.eval_only and not training_results.get(model, True):
             print(f"\n{'-'*80}")
-            print(f"EVALUATING MODEL: {model} ON {eval_type}")
+            print(f"SKIPPING EVALUATION FOR {model} ON {task_eval_type}: Training failed")
             print(f"{'-'*80}")
+            continue
             
-            # Initialize model results if not exists
-            if model not in all_results:
-                all_results[model] = {}
-                
-            eval_log_path = os.path.join(results_dir, f"{model.replace('/', '_')}_{eval_type}_eval.log")
-            print(f"Evaluation logs will be saved to: {os.path.abspath(eval_log_path)}")
-            
-            results = run_evaluation(model, eval_type, eval_config)
-            
-            # Store results
-            all_results[model][eval_type] = results
-            
-            # Save results to type-specific file
-            save_results(results, type_results_file)
-            
-            print(f"{'-'*80}")
-            print(f"EVALUATION COMPLETED: {model} ON {eval_type}")
-            print(f"{'-'*80}")
+        print(f"\n{'-'*80}")
+        print(f"EVALUATING MODEL: {model} ON {task_eval_type}")
+        print(f"{'-'*80}")
         
-        print(f"\n{'#'*80}")
-        print(f"ALL MODELS EVALUATED ON {eval_type}")
-        print(f"{'#'*80}")
+        # Initialize model results if not exists
+        if model not in all_results:
+            all_results[model] = {}
+            
+        eval_log_path = os.path.join(task_results_dir, f"{model.replace('/', '_')}_{task_eval_type}_eval.log")
+        print(f"Evaluation logs will be saved to: {os.path.abspath(eval_log_path)}")
+        
+        results = run_evaluation(model, task_eval_type, eval_config)
+        
+        # Store results
+        all_results[model][task_eval_type] = results
+        
+        # Save results to type-specific file
+        save_results(results, type_results_file)
+        
+        print(f"{'-'*80}")
+        print(f"EVALUATION COMPLETED: {model} ON {task_eval_type}")
+        print(f"{'-'*80}")
+    
+    print(f"\n{'#'*80}")
+    print(f"ALL MODELS EVALUATED ON {task_eval_type}")
+    print(f"{'#'*80}")
     
     print(f"\n{'#'*100}")
-    print(f"EVALUATION PHASE COMPLETED FOR ALL TYPES")
+    print(f"EVALUATION PHASE COMPLETED FOR TASK {current_task}")
+    print(f"Results saved to: {type_results_file}")
     print(f"{'#'*100}")
     
     # Convert all_results to format expected by print_summary

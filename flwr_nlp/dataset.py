@@ -5,6 +5,7 @@ from flwr_datasets import FederatedDataset
 from flwr_datasets.partitioner import IidPartitioner
 from transformers import AutoTokenizer
 from trl import DataCollatorForCompletionOnlyLM
+import os
 
 FDS = None  # 缓存联邦数据集对象，避免重复初始化
 
@@ -94,7 +95,12 @@ def load_data(partition_id: int, num_partitions: int, dataset_name: str):
             partitioners={"train": partitioner},  # 为训练集应用分区器
         )
     client_trainset = FDS.load_partition(partition_id, "train")  # 加载指定分区的训练数据
-    client_trainset = reformat(client_trainset, llm_task="generalnlp")  # 重新格式化为通用NLP任务
+    
+    # Get task type from environment variable, default to "generalnlp" if not set
+    llm_task = os.environ.get("FLWR_LLM_TASK", "generalnlp")
+    print(f"Using LLM task type: {llm_task} for dataset formatting")
+    
+    client_trainset = reformat(client_trainset, llm_task=llm_task)  # 使用环境变量中的任务类型
     return client_trainset
 
 

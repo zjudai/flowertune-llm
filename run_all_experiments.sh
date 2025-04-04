@@ -1,11 +1,19 @@
 #!/bin/zsh
 # Wrapper script for running experiments
 
+# Check if at least one task is provided, otherwise use general-nlp as default
+if [ $# -eq 0 ]; then
+    TASKS=("general-nlp")
+else
+    TASKS=("$@")
+fi
+
 # Create timestamp for log file
 timestamp=$(date +"%Y%m%d_%H%M%S")
-log_file="evaluation_run_${timestamp}.log"
+log_file="multi_task_evaluation_run_${timestamp}.log"
 
-echo "Starting evaluation run at $(date)" | tee "$log_file"
+echo "Starting multi-task evaluation run at $(date)" | tee "$log_file"
+echo "Tasks to run: ${TASKS[*]}" | tee -a "$log_file"
 echo "Log file: $log_file" | tee -a "$log_file"
 
 # Activate conda environment and set proxies
@@ -24,8 +32,12 @@ echo "Proxy settings:" | tee -a "$log_file"
 echo "HTTP_PROXY: $http_proxy" | tee -a "$log_file"
 echo "HTTPS_PROXY: $https_proxy" | tee -a "$log_file"
 
-# Pass all arguments to the Python script
-echo "Running: python run_experiments.py $@" | tee -a "$log_file"
-python run_experiments.py "$@" 2>&1 | tee -a "$log_file"
+# Run each task sequentially
+for task in "${TASKS[@]}"; do
+    echo "Starting task: $task" | tee -a "$log_file"
+    python run_experiments.py --task "$task" --run-id "$timestamp" 2>&1 | tee -a "$log_file"
+    echo "Completed task: $task" | tee -a "$log_file"
+    echo "-----------------------------------------" | tee -a "$log_file"
+done
 
-echo "Evaluation completed at $(date)" | tee -a "$log_file" 
+echo "All task evaluations completed at $(date)" | tee -a "$log_file" 

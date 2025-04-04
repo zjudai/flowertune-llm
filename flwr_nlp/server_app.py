@@ -123,11 +123,23 @@ def server_fn(context: Context):
     # 返回:
     #   包含策略和配置的ServerAppComponents对象
     
-    # 根据当前时间戳创建输出目录
-    current_time = datetime.now()
-    folder_name = current_time.strftime("%Y-%m-%d_%H-%M-%S")
+    # 读取环境变量中的任务信息、模型名称和时间戳
+    task_name = os.environ.get("FLWR_TASK_NAME", "general-nlp")
+    model_name = os.environ.get("FLWR_MODEL_NAME", "model")
+    timestamp = os.environ.get("FLWR_RUN_TIMESTAMP", None)
+    
+    # 根据模型名称、任务类型和时间戳创建输出目录
+    if timestamp:
+        folder_name = f"{task_name}_{model_name}_{timestamp}"
+    else:
+        current_time = datetime.now()
+        folder_name = f"{task_name}_{model_name}_{current_time.strftime('%Y-%m-%d_%H-%M-%S')}"
+        
     save_path = os.path.join(os.getcwd(), f"results/{folder_name}")
     os.makedirs(save_path, exist_ok=True)
+    
+    print(f"Model checkpoints will be saved to: {save_path}")
+    print(f"Task: {task_name}, Model: {model_name}, Time: {timestamp if timestamp else 'current'}")
 
     # 从配置中读取信息
     num_rounds = context.run_config["num-server-rounds"]

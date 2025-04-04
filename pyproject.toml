@@ -23,7 +23,7 @@ clientapp = "flwr_nlp.client_app:app"
 num-server-rounds = 10
 
 [tool.flwr.app.config.model]
-name = "mistralai/Ministral-8B-Instruct-2410"
+name = "Qwen/Qwen2.5-1.5B-Instruct"
 quantization = 4
 gradient-checkpointing = true
 
@@ -38,7 +38,7 @@ fraction-fit = 0.1
 fraction-evaluate = 0.0
 
 [tool.flwr.federations.local-simulation.options]
-num-supernodes = 20
+num-supernodes = 50
 
 [tool.hatch.build.targets.wheel]
 packages = [ ".",]
@@ -61,7 +61,7 @@ gradient-checkpointing = true
 lr-scheduler-type = "constant"
 
 [tool.flwr.app.config.static.dataset]
-name = "vicgalle/alpaca-gpt4"
+name = "FinGPT/fingpt-sentiment-train"
 
 [tool.flwr.federations.local-simulation.options.backend.client-resources]
 num-cpus = 6

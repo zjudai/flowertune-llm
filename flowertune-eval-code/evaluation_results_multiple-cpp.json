@@ -1,6 +1,6 @@
 {
   "multiple-cpp": {
-    "pass@1": 0.08074534161490683
+    "pass@1": 0.0
   },
   "config": {
     "prefix": "",
@@ -11,9 +11,9 @@
     "n_samples": 1,
     "eos": "<|endoftext|>",
     "seed": 0,
-    "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
     "modeltype": "causal",
-    "peft_model": "/home/st/flwr-nlp/results/2025-03-31_11-22-03/peft_10",
+    "peft_model": "/home/st/flwr-nlp/results/2025-03-31_11-30-26/peft_10",
     "revision": null,
     "use_auth_token": true,
     "trust_remote_code": false,

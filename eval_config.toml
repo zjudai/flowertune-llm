@@ -1,95 +1,142 @@
 [default]
-run_name = "fl"
+default_peft_path = ""
+working_dir = "flowertune-eval"
 batch_size = 16
-category = "stem,social_sciences,humanities"
-working_dir = "flowertune-eval-general-nlp"
-default_peft_path = "/home/st/flwr-nlp/results/2025-03-25_15-28-46/peft_10"
+run_name = "fl"
 
 [general_nlp]
-batch_size = 16
 working_dir = "flowertune-eval-general-nlp"
-category = "stem,social_sciences,humanities"
+batch_size = 16
 script = "eval.py"
+category = "stem,social_sciences,humanities"
 
 [finance]
-batch_size = 32
 working_dir = "flowertune-eval-finance"
-datasets = "fpb,fiqa,tfns"
+batch_size = 16
 script = "eval.py"
+datasets = "fpb,fiqa,tfns"
 
 [medical]
-batch_size = 16
 working_dir = "flowertune-eval-medical"
-datasets = "pubmedqa,medmcqa,medqa,careqa"
+batch_size = 8
 script = "eval.py"
+datasets = "pubmedqa,medmcqa,medqa,careqa"
 
 [code]
-batch_size = 4
 working_dir = "flowertune-eval-code"
-script = "main.py"
-max_length_generation = 1024
+batch_size = 4
+script = "eval.py"
 tasks = [ "humaneval", "mbpp", "multiple-js", "multiple-cpp",]
+max_length_generation = 1024
 allow_code_execution = true
 save_generations = true
 save_references = true
 use_auth_token = true
 
+[models."mistralai/Ministral-8B-Instruct-2410"]
+peft_path = ""
+trust_remote_code = true
+quantization = 4
+
 [models."Qwen/Qwen2.5-7B-Instruct"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_13-17-23/peft_10"
-trust_remote_code = false
+peft_path = "/home/st/flwr-nlp/results/medical_Qwen_Qwen2.5-7B-Instruct_20250404_141928/peft_10"
+trust_remote_code = true
 quantization = 4
 
 [models."meta-llama/Llama-3.1-8B-Instruct"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_04-40-09/peft_10"
-trust_remote_code = false
-quantization = 4
-
-[models."mistralai/Mistral-7B-v0.3"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-25_15-28-46/peft_10"
+peft_path = "/home/st/flwr-nlp/results/medical_meta-llama_Llama-3.1-8B-Instruct_20250404_142552/peft_10"
 trust_remote_code = false
 quantization = 4
 
 [models."mistralai/Mistral-7B-Instruct-v0.3"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_05-14-16/peft_10"
+peft_path = "/home/st/flwr-nlp/results/medical_mistralai_Mistral-7B-Instruct-v0.3_20250404_142913/peft_10"
 trust_remote_code = false
 quantization = 4
 
-[models."mistralai/Ministral-8B-Instruct-2410"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_14-22-50/peft_5"
+[models."mistralai/Mistral-7B-v0.3"]
+peft_path = ""
 trust_remote_code = false
 quantization = 4
 
 [models."Qwen/Qwen2.5-1.5B-Instruct"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_13-55-00/peft_10"
+peft_path = "/home/st/flwr-nlp/results/medical_Qwen_Qwen2.5-1.5B-Instruct_20250404_141619/peft_10"
 trust_remote_code = false
 quantization = 4
 
 [models."meta-llama/Llama-3.2-1B-Instruct"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_04-31-46/peft_10"
+peft_path = "/home/st/flwr-nlp/results/medical_meta-llama_Llama-3.2-1B-Instruct_20250404_142248/peft_10"
 trust_remote_code = false
 quantization = 4
 
 [models."TinyLlama/TinyLlama-1.1B-Chat-v1.0"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_11-22-03/peft_10"
+peft_path = ""
 trust_remote_code = false
 quantization = 4
 
 [models."google/gemma-3-1b-it"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-25_15-28-46/peft_10"
+peft_path = ""
 trust_remote_code = false
 quantization = 4
 
 [models."facebook/MobileLLM-1B"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-25_15-28-46/peft_10"
+peft_path = ""
 trust_remote_code = false
 quantization = 4
 
 [models."mlx-community/Llama-3.2-1B-Instruct-4bit"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-27_01-56-41/peft_10"
+peft_path = ""
 trust_remote_code = false
 quantization = 4
 
 [models."deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"]
-peft_path = "/home/st/flwr-nlp/results/2025-03-31_11-30-26/peft_10"
+peft_path = "/home/st/flwr-nlp/results/medical_deepseek-ai_DeepSeek-R1-Distill-Qwen-1.5B_20250404_143326/peft_10"
 trust_remote_code = false
 quantization = 4
+
+[tasks.general-nlp.models."mistralai/Mistral-7B-v0.3"]
+peft_path = "/home/st/flwr-nlp/results/general-nlp_mistralai_Mistral-7B-v0.3_20250401_100230/peft_10"
+
+[tasks.general-nlp.models."meta-llama/Llama-3.2-1B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/general-nlp_meta-llama_Llama-3.2-1B-Instruct_20250401_103045/peft_10"
+
+[tasks.finance.models."meta-llama/Llama-3.2-1B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/finance_meta-llama_Llama-3.2-1B-Instruct_20250404_005805/peft_10"
+
+[tasks.finance.models."Qwen/Qwen2.5-1.5B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/finance_Qwen_Qwen2.5-1.5B-Instruct_20250404_001552/peft_10"
+
+[tasks.finance.models."Qwen/Qwen2.5-7B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/finance_Qwen_Qwen2.5-7B-Instruct_20250404_002657/peft_10"
+
+[tasks.finance.models."meta-llama/Llama-3.1-8B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/finance_meta-llama_Llama-3.1-8B-Instruct_20250404_010837/peft_10"
+
+[tasks.finance.models."mistralai/Mistral-7B-Instruct-v0.3"]
+peft_path = "/home/st/flwr-nlp/results/finance_mistralai_Mistral-7B-Instruct-v0.3_20250404_014217/peft_10"
+
+[tasks.finance.models."deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"]
+peft_path = "/home/st/flwr-nlp/results/finance_deepseek-ai_DeepSeek-R1-Distill-Qwen-1.5B_20250404_021846/peft_10"
+
+[tasks.medical.models."meta-llama/Llama-3.2-1B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/medical_meta-llama_Llama-3.2-1B-Instruct_20250404_142248/peft_10"
+
+[tasks.medical.models."Qwen/Qwen2.5-1.5B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/medical_Qwen_Qwen2.5-1.5B-Instruct_20250404_141619/peft_10"
+
+[tasks.medical.models."Qwen/Qwen2.5-7B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/medical_Qwen_Qwen2.5-7B-Instruct_20250404_141928/peft_10"
+
+[tasks.medical.models."meta-llama/Llama-3.1-8B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/medical_meta-llama_Llama-3.1-8B-Instruct_20250404_142552/peft_10"
+
+[tasks.medical.models."mistralai/Mistral-7B-Instruct-v0.3"]
+peft_path = "/home/st/flwr-nlp/results/medical_mistralai_Mistral-7B-Instruct-v0.3_20250404_142913/peft_10"
+
+[tasks.medical.models."deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"]
+peft_path = "/home/st/flwr-nlp/results/medical_deepseek-ai_DeepSeek-R1-Distill-Qwen-1.5B_20250404_143326/peft_10"
+
+[tasks.code.models."meta-llama/Llama-3.2-1B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/code_meta-llama_Llama-3.2-1B-Instruct_20250403_150122/peft_10"
+
+[tasks.code.models."Qwen/Qwen2.5-1.5B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/code_Qwen_Qwen2.5-1.5B-Instruct_20250403_163418/peft_10"
