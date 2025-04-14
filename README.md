@@ -7,7 +7,7 @@ which allows users to perform the training on a single GPU.
 
 ## Important Links
 
-- GitHub: [https://github.com/zjudai/flwr-nlp](https://github.com/zjudai/flwr-nlp)
+- GitHub: [https://github.com/zjudai/flwr-nlp](https://github.com/zjudai/flowertune-llm)
 - HuggingFace: [https://huggingface.co/zjudai/FlowerTune](https://huggingface.co/zjudai/FlowerTune)
 - Model Collection: [FlowerTune LoRA Collection](https://huggingface.co/collections/zjudai/flowertune-lora-collection-67ecd5d0dae6145cbf798439)
 
