@@ -13,8 +13,7 @@ which allows users to perform the training on a single GPU.
 
 ## Experimental Setup
 
-The dataset is divided into 20 partitions in an IID fashion, a partition is assigned to each ClientApp.
-We randomly sample a fraction (0.1) of the total nodes to participate in each round, for a total of `10` rounds.
+The dataset partitioning follows the default settings in FlowerTune llm Leaderboard, for a total of `10` rounds.
 All settings are defined in `pyproject.toml`.
 
 ## Methodology
@@ -89,7 +88,6 @@ The evaluation was conducted on the MMLU (Massive Multitask Language Understandi
 | [meta-llama/Llama-3.1-8B-Instruct](https://huggingface.co/zjudai/flowertune-general-nlp-lora-llama-3.1-8b-instruct) | 22.87% | 39.55% | 32.05% | 31.49% | 2.03 GB |
 | [TinyLlama/TinyLlama-1.1B-Chat-v1.0](https://huggingface.co/zjudai/flowertune-general-nlp-lora-tinyllama-1.1b-chat-v1.0) | 14.18% | 21.61% | 21.91% | 19.23% | 0.67 GB |
 | [meta-llama/Llama-3.2-1B-Instruct](https://huggingface.co/zjudai/flowertune-general-nlp-lora-llama-3.2-1b-instruct) | 12.88% | 17.61% | 6.16% | 12.22% | 0.51 GB |
-| [deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B](https://huggingface.co/zjudai/flowertune-general-nlp-lora-deepseek-r1-distill-qwen-1.5b) | 0.54% | 0.00% | 0.04% | 0.19% | 0.65 GB |
 
 ### Medical
 
@@ -108,10 +106,8 @@ The evaluation was conducted on the MMLU (Massive Multitask Language Understandi
 
 ## Hardware Details
 
-For the experiments, I utilized a GPU-enabled virtual machine.
+The GPU details are as follows.
 
 | **Component** | **Specification**    |
 |---------------|----------------------|
-| **GPU**       | 1 × GPU with 16+ GB  |
-| **vCPUs**     | 6                    |
-| **Memory**    | 16+ GB               |
+| **GPU**       | 1 × NVIDIA A100 GPU with 40 GB Memory |
