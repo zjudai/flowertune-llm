@@ -39,7 +39,7 @@ trust_remote_code = true
 quantization = 4
 
 [models."Qwen/Qwen2.5-7B-Instruct"]
-peft_path = "/home/st/flwr-nlp/results/medical_Qwen_Qwen2.5-7B-Instruct_20250404_141928/peft_10"
+peft_path = "/home/st/flwr-nlp/results/general-nlp_Qwen_Qwen2.5-7B-Instruct_20250417_221935/peft_10"
 trust_remote_code = true
 quantization = 4
 
@@ -98,6 +98,9 @@ peft_path = "/home/st/flwr-nlp/results/general-nlp_mistralai_Mistral-7B-v0.3_202
 
 [tasks.general-nlp.models."meta-llama/Llama-3.2-1B-Instruct"]
 peft_path = "/home/st/flwr-nlp/results/general-nlp_meta-llama_Llama-3.2-1B-Instruct_20250401_103045/peft_10"
+
+[tasks.general-nlp.models."Qwen/Qwen2.5-7B-Instruct"]
+peft_path = "/home/st/flwr-nlp/results/general-nlp_Qwen_Qwen2.5-7B-Instruct_20250417_221935/peft_10"
 
 [tasks.finance.models."meta-llama/Llama-3.2-1B-Instruct"]
 peft_path = "/home/st/flwr-nlp/results/finance_meta-llama_Llama-3.2-1B-Instruct_20250404_005805/peft_10"

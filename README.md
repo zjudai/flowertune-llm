@@ -46,13 +46,19 @@ For example, with the **Qwen/Qwen2.5-7B-Instruct** model we adopted the followin
 
 ### Environment Setup
 
+First, create and activate the conda environment:
+
+```shell
+conda create -n flwr-tune python=3.9
+conda activate flwr-tune
+```
+
 Project dependencies are defined in `pyproject.toml`. Install them in an activated Python environment with:
 
 ```shell
-python -m pip install --upgrade pip wheel setuptools packaging
-
 pip install -e .
 ```
+
 
 ### Running the Training and Evaluation
 
@@ -60,7 +66,7 @@ We use a wrapper script `run_all_experiments.sh` to handle both training and eva
 
 ```bash
 # Example of running experiments
-./run_all_experiments.sh --model Qwen/Qwen2.5-7B-Instruct --task general_nlp
+./run_all_experiments.sh --model Qwen/Qwen2.5-7B-Instruct --task general-nlp
 ```
 
 The wrapper script sets up the proper environment, including:

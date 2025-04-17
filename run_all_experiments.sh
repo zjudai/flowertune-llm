@@ -1,43 +1,58 @@
 #!/bin/zsh
 # Wrapper script for running experiments
 
-# Check if at least one task is provided, otherwise use general-nlp as default
-if [ $# -eq 0 ]; then
-    TASKS=("general-nlp")
-else
-    TASKS=("$@")
+# Default values
+MODEL=""
+TASK="general-nlp"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --model)
+      MODEL="$2"
+      shift 2
+      ;;
+    --task)
+      TASK="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# Validate required parameters
+if [ -z "$MODEL" ]; then
+  echo "Error: --model parameter is required"
+  echo "Usage: $0 --model MODEL_NAME --task TASK_NAME"
+  exit 1
 fi
 
 # Create timestamp for log file
 timestamp=$(date +"%Y%m%d_%H%M%S")
 log_file="multi_task_evaluation_run_${timestamp}.log"
 
-echo "Starting multi-task evaluation run at $(date)" | tee "$log_file"
-echo "Tasks to run: ${TASKS[*]}" | tee -a "$log_file"
+echo "Starting evaluation run at $(date)" | tee "$log_file"
+echo "Model: $MODEL" | tee -a "$log_file"
+echo "Task: $TASK" | tee -a "$log_file"
 echo "Log file: $log_file" | tee -a "$log_file"
 
-# Activate conda environment and set proxies
+# Activate conda environment
 echo "Setting up environment..." | tee -a "$log_file"
-# source ~/miniconda3/etc/profile.d/conda.sh
-conda activate flwr
-export http_proxy=http://10.72.74.124:7890
-export https_proxy=http://10.72.74.124:7890
+source ~/miniconda3/etc/profile.d/conda.sh 2>/dev/null || source ~/anaconda3/etc/profile.d/conda.sh
+conda activate flwr-tune
 
 # Print environment information for debugging
 echo "Python version:" | tee -a "$log_file"
 python --version 2>&1 | tee -a "$log_file"
 echo "Conda environment:" | tee -a "$log_file"
 conda info 2>&1 | tee -a "$log_file"
-echo "Proxy settings:" | tee -a "$log_file"
-echo "HTTP_PROXY: $http_proxy" | tee -a "$log_file"
-echo "HTTPS_PROXY: $https_proxy" | tee -a "$log_file"
 
-# Run each task sequentially
-for task in "${TASKS[@]}"; do
-    echo "Starting task: $task" | tee -a "$log_file"
-    python run_experiments.py --task "$task" --run-id "$timestamp" 2>&1 | tee -a "$log_file"
-    echo "Completed task: $task" | tee -a "$log_file"
-    echo "-----------------------------------------" | tee -a "$log_file"
-done
+# Run the experiment
+echo "Starting experiment with model: $MODEL and task: $TASK" | tee -a "$log_file"
+python run_experiments.py --models "$MODEL" --task "$TASK" --run-id "$timestamp" 2>&1 | tee -a "$log_file"
+echo "Experiment completed" | tee -a "$log_file"
 
-echo "All task evaluations completed at $(date)" | tee -a "$log_file" 
+echo "Evaluation completed at $(date)" | tee -a "$log_file" 

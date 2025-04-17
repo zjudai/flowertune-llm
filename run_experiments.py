@@ -9,16 +9,13 @@ This script runs training and evaluation for various small language models acros
 - Code: evaluates on HumanEval, MBPP, multiple-js, and multiple-cpp
 
 Prerequisites:
-  - Conda environment 'flwr' must be active
-  - Proxy settings must be configured:
-    export http_proxy=http://10.72.74.124:7890 https_proxy=http://10.72.74.124:7890
+  - Conda environment 'flwr-tune' must be active
 
 Usage:
   # Recommended: Use the wrapper script that sets up environment automatically
   ./run_all_experiments.sh [task] [options]
   
   # Or manually run with proper environment setup:
-  conda activate flwr && export http_proxy=http://10.72.74.124:7890 https_proxy=http://10.72.74.124:7890
   python run_experiments.py --task [task] [options]
   
   # Command options:

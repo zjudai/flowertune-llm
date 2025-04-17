@@ -7,7 +7,7 @@ name = "flwr-nlp"
 version = "1.0.0"
 description = ""
 license = "Apache-2.0"
-dependencies = [ "flwr[simulation]>=1.16.0", "flwr-datasets>=0.5.0", "torch==2.3.1", "trl==0.8.1", "bitsandbytes==0.45.0", "scipy==1.13.0", "peft==0.6.2", "transformers==4.47.0", "sentencepiece==0.2.0", "omegaconf==2.3.0", "hf_transfer==0.1.8",]
+dependencies = [ "flwr[simulation]>=1.16.0", "flwr-datasets>=0.5.0", "torch==2.3.1", "trl==0.8.1", "bitsandbytes==0.45.0", "scipy==1.13.0", "peft==0.6.2", "transformers==4.47.0", "sentencepiece==0.2.0", "omegaconf==2.3.0", "hf_transfer==0.1.8", "toml", "scikit-learn",]
 
 [tool.flwr.app]
 publisher = "taoshen"
@@ -23,7 +23,7 @@ clientapp = "flwr_nlp.client_app:app"
 num-server-rounds = 10
 
 [tool.flwr.app.config.model]
-name = "Qwen/Qwen2.5-1.5B-Instruct"
+name = "Qwen/Qwen2.5-7B-Instruct"
 quantization = 4
 gradient-checkpointing = true
 
@@ -38,7 +38,7 @@ fraction-fit = 0.1
 fraction-evaluate = 0.0
 
 [tool.flwr.federations.local-simulation.options]
-num-supernodes = 50
+num-supernodes = 20
 
 [tool.hatch.build.targets.wheel]
 packages = [ ".",]
@@ -61,7 +61,7 @@ gradient-checkpointing = true
 lr-scheduler-type = "constant"
 
 [tool.flwr.app.config.static.dataset]
-name = "FinGPT/fingpt-sentiment-train"
+name = "vicgalle/alpaca-gpt4"
 
 [tool.flwr.federations.local-simulation.options.backend.client-resources]
 num-cpus = 6

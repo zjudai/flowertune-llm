@@ -74,6 +74,8 @@ def get_model(model_cfg: DictConfig):
         r=model_cfg.lora.peft_lora_r,  # LoRA秩
         lora_alpha=model_cfg.lora.peft_lora_alpha,  # LoRA alpha参数
         lora_dropout=0.075,  # LoRA dropout率
+        target_modules=["q_proj", "v_proj"],  # 目标模块为注意力投影层
+        # target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],  # 目标模块为注意力投影层
         task_type="CAUSAL_LM",  # 任务类型：因果语言模型
     )
 
